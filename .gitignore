@@ -1,0 +1,140 @@
+############################
+#   .NET / MAUI
+############################
+
+# Build results
+bin/
+obj/
+out/
+Debug/
+Release/
+
+# Maui generated resources
+**/Resources/Raw/*.zip
+**/Resources/*.designer.cs
+**/Platforms/**/bin/
+**/Platforms/**/obj/
+
+# .NET user files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.csproj.user
+*.rsuser
+
+# ASP.NET / Web (in case of web backend in solution)
+*.config.user
+*.vspscc
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+nuget.exe
+*.nuspec
+
+############################
+#   MAUI platform-specific
+############################
+
+# Android
+*.apk
+*.dex
+*.ap_
+*.aab
+*.aapt2
+*.keystore
+*.jks
+android.keystore
+**/Resources/layout/*.axml.cs
+
+# Android build folders
+**/Platforms/Android/*.apk
+**/Platforms/Android/*.aab
+**/Platforms/Android/**/*cache*/ 
+*.keystore
+.keystore
+
+# iOS
+*.app
+*.ipa
+*.xcarchive
+**/Platforms/iOS/obj/
+**/Platforms/iOS/bin/
+**/Platforms/iOS/**/*.plist.user
+**/Platforms/iOS/**/*.moved-aside
+**/Platforms/iOS/**/*.xcuserstate
+
+# MacCatalyst
+*.app
+
+# Windows
+*.appx
+*.appxbundle
+*.appxupload
+*.msix
+*.msixbundle
+**/Platforms/Windows/BundleArtifacts/
+**/Platforms/Windows/AppPackages/
+
+############################
+#   Visual Studio / Rider / VSCode
+############################
+
+# Visual Studio
+.vs/
+*.vscode/
+
+# Rider
+.idea/
+*.ipr
+*.iws
+*.iml
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+############################
+#   Logs / temp files
+############################
+
+*.log
+*.tlog
+*.trace
+*.pidb
+*.svclog
+*.tmp
+*.temp
+*.DS_Store
+
+############################
+#   Other common ignores
+############################
+
+# Backup files
+*~
+*.bak
+*.orig
+
+# Crash dumps
+*.dmp
+
+# Configuration
+appsettings.*.local.json
+secrets.json
+
+# Generated cache
+.cache/
+.maui/
+
+Wyoming.Net.Tts/Backend/Kokoro/model
+Wyoming.Net.Tts/Backend/Kokoro/espeak
+Wyoming.Net.Tts/Backend/Kokoro/voices

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<RootNamespace>Wyoming.Net.Satellite.App.Droid</RootNamespace>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseMaui>true</UseMaui>
+		<TargetFramework>net9.0-android</TargetFramework>
+		<Platforms>AnyCPU;ARM64</Platforms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Wyoming.Net.Satellite.App\Wyoming.Net.Satellite.App.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidLibrary Remove="C:\Users\guilh\.nuget\packages\microsoft.ml.onnxruntime\1.23.2\buildTransitive\net8.0-android31.0\..\..\runtimes\android\native\onnxruntime.aar" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidLibrary Remove="C:\Users\guilh\.nuget\packages\microsoft.ml.onnxruntime\1.23.2\buildTransitive\net8.0-android31.0\..\..\runtimes\android\native\onnxruntime.aar" />
+	</ItemGroup>
+
+</Project>

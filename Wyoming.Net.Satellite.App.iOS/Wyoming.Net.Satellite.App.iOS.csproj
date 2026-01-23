@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0-ios</TargetFramework>
+		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseMaui>true</UseMaui>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Wyoming.Net.Satellite.App\Wyoming.Net.Satellite.App.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<MauiAsset Include="Resources/Raw/**" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
+		<MtouchLink>SdkOnly</MtouchLink>
+		<!-- You may also need to explicitly link the CoreML framework -->
+		<!-- <MtouchExtraArgs> -framework CoreML </MtouchExtraArgs> -->
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	  <MtouchLink>SdkOnly</MtouchLink>
+	  <CodesignKey>Apple Development: guilherme.pr@outlook.com (Y7GC955294)</CodesignKey>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <CodesignKey>Apple Development: guilherme.pr@outlook.com (Y7GC955294)</CodesignKey>
+	</PropertyGroup>
+
+</Project>
