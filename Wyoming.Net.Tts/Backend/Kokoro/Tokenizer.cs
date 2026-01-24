@@ -31,7 +31,8 @@ public static partial class Tokenizer
     //     { '₫', "dong" }
     // };
 
-    private static ReadOnlyDictionary<char, int> Vocab { get; }
+    public static ReadOnlyDictionary<char, int> Vocab { get; }
+    
     private static ReadOnlyDictionary<int, char> TokenToChar { get; }
 
     static Tokenizer()
@@ -88,7 +89,7 @@ public static partial class Tokenizer
     }
     
     /// <summary> Converts the input text into the corresponding phonemes, with slight preprocessing and post-processing to preserve punctuation and other TTS essentials. </summary>
-    private static async Task<string> PhonemizeAsync(string inputText, string langCode = "en-us",
+    public static async Task<string> PhonemizeAsync(string inputText, string langCode = "en-us",
         bool preprocess = true)
     {
         var strings = await Task.WhenAll(PhonemeLiteral().Split(inputText).Select(async text =>
@@ -283,7 +284,7 @@ public static partial class Tokenizer
                 sb.Append(c);
 
                 // Force exactly one space after
-                if (i + 1 < input.Length && input[i + 1] != ' ')
+                if (i + 1 < input.Length && sb[^1] != ' ')
                 {
                     sb.Append(' ');
                 }
@@ -656,13 +657,20 @@ public static partial class Tokenizer
             switch (c)
             {
                 // Phoneme refinements
-                case 'ː':
+                case 'ː' when i + 1 < input.Length && input[i + 1] == ' ':
+                    dest[pos++] = ' ';
+                    i++;
+                    lastWasSpace = true;
                     continue;
                 case 'ɔ' when i + 1 < input.Length && input[i + 1] == 'ː':
                     dest[pos++] = 'ˌ';
                     dest[pos++] = 'ɔ';
                     i++;
                     lastWasSpace = false;
+                    continue;
+                case '\n' when  i + 1 < input.Length && input[i + 1] == ' ':
+                    dest[pos++] = '\n';
+                    i++;
                     continue;
                 default:
                     dest[pos++] = c;

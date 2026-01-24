@@ -10,6 +10,7 @@ public sealed class KokoroBackend : IInferenceBackend, IAsyncDisposable
     public const int SampleRate = 24000;
     public const int Width = 2;
     public const int Channels = 1;
+    public const int MaxTokens = 510;
     
     private readonly SemaphoreSlim semaphore = new(1, 1);
     private readonly InferenceSession session;
@@ -22,7 +23,6 @@ public sealed class KokoroBackend : IInferenceBackend, IAsyncDisposable
 
     private readonly KokoroVoice voice;
     private readonly float speed;
-    private const int MaxTokens = 510;
 
     private bool disposed;
 
@@ -40,21 +40,16 @@ public sealed class KokoroBackend : IInferenceBackend, IAsyncDisposable
     public async Task SynthesizeAsync(string text, OnStreamAsync callback)
     {
         var tokens = await Tokenizer.TokenizeAsync(text, voice.GetLangCode());
-        int windowPos = 0;
         int iteration = 0;
-
-        // Chunk to the model max tokens
-        while (windowPos < tokens.Length)
+        
+        foreach (var segment in SegmentationStrategy.SplitToSegments(tokens))
         {
-            int windowSize = Math.Min(MaxTokens, tokens.Length - windowPos);
-
             await Infer(
-                new Memory<int>(tokens, windowPos, windowSize),
+                segment,
                 callback,
                 iteration
             );
-
-            windowPos += windowSize;
+            
             iteration++;
         }
 
