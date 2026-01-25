@@ -134,7 +134,3 @@ secrets.json
 # Generated cache
 .cache/
 .maui/
-
-Wyoming.Net.Tts/Backend/Kokoro/model
-Wyoming.Net.Tts/Backend/Kokoro/espeak
-Wyoming.Net.Tts/Backend/Kokoro/voices

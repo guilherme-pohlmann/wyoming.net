@@ -1,0 +1,1 @@
+The binaries included are completely standalone.\n\nTo use them, simply set the `ESPEAK_DATA_PATH` variable to "your_path\espeak-ng-data" and invoke the appropriate `.dll` file.\n\nThey are all made to have the 'dll' extension just for consistency.

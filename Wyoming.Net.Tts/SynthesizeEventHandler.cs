@@ -2,29 +2,21 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Wyoming.Net.Core;
+using Wyoming.Net.Core.Audio;
 using Wyoming.Net.Core.Events;
 using Wyoming.Net.Core.Server;
-using Wyoming.Net.Tts.Backend;
-using Wyoming.Net.Tts.Backend.Kokoro;
 
 namespace Wyoming.Net.Tts;
 
 public sealed class SynthesizeEventHandler : AsyncEventHandler
 {
-    private static readonly Event KokoroAudioStartEvent = new AudioStart()
-    {
-        Channels = KokoroBackend.Channels,
-        Rate = KokoroBackend.SampleRate,
-        Timestamp = null,
-        Width = KokoroBackend.Width,
-    }.ToEvent();
-
-    private static readonly Event KokoroSynthesizeStoppedEvent = new SynthesizeStopped().ToEvent();
-    private static readonly Event KokoroAudioStopEvent = new AudioStop().ToEvent();
+   private static readonly Event SynthesizeStoppedEvent = new SynthesizeStopped().ToEvent();
+    private static readonly Event AudioStopEvent = new AudioStop().ToEvent();
     
-    private IInferenceBackend? inferenceBackend;
+    private ITextToSpeechProvider? inferenceBackend;
     private readonly Info wyomingInfo;
     private readonly WyomingStreamWriter writer;
+    private readonly Func<ITextToSpeechProvider> backendFactory;
 
     private bool isStreaming;
     
@@ -32,10 +24,12 @@ public sealed class SynthesizeEventHandler : AsyncEventHandler
         TcpClient client, 
         AsyncTcpServer server,
         ILoggerFactory loggerFactory,
+        Func<ITextToSpeechProvider> backendFactory,
         Info wyomingInfo) 
         : base(client, server, loggerFactory)
     {
         this.wyomingInfo = wyomingInfo;
+        this.backendFactory = backendFactory;
         writer = new WyomingStreamWriter(client.GetStream());
     }
 
@@ -56,7 +50,7 @@ public sealed class SynthesizeEventHandler : AsyncEventHandler
             
             var synthesize = Synthesize.FromEvent(ev);
             
-            EnsureBackend(synthesize.Voice?.Name);
+            await EnsureBackendAsync(synthesize.Voice?.Name);
             await HandleSynthesizeAsync(synthesize.Text, cancellationToken);
 
             return true;
@@ -65,7 +59,7 @@ public sealed class SynthesizeEventHandler : AsyncEventHandler
         if (SynthesizeStart.IsType(ev.Type))
         {
             var synthesizeStart = SynthesizeStart.FromEvent(ev);
-            EnsureBackend(synthesizeStart.Voice?.Name);
+            await EnsureBackendAsync(synthesizeStart.Voice?.Name);
             isStreaming = true;
             return true;
         }
@@ -82,7 +76,7 @@ public sealed class SynthesizeEventHandler : AsyncEventHandler
         if (SynthesizeStop.IsType(ev.Type))
         {
             isStreaming = false;
-            await writer.WriteEventAsync(KokoroSynthesizeStoppedEvent);
+            await writer.WriteEventAsync(SynthesizeStoppedEvent);
         }
 
         return true;
@@ -111,16 +105,22 @@ public sealed class SynthesizeEventHandler : AsyncEventHandler
         {
             case -1:
                 // audio stop
-                await writer.WriteEventAsync(KokoroAudioStopEvent);
+                await writer.WriteEventAsync(AudioStopEvent);
                 return;
             case 0:
                 //audio start
-                await writer.WriteEventAsync(KokoroAudioStartEvent);
+                await writer.WriteEventAsync(new AudioStart()
+                {
+                   Rate = inferenceBackend!.SampleRate,
+                   Channels = inferenceBackend.ChannelCount,
+                   Timestamp = null,
+                   Width =  inferenceBackend.Width,
+                }.ToEvent());
                 break;
         }
 
         var audioBytes = MemoryMarshal.Cast<float, byte>(samples.Span);
-        AudioChunk audioChunk = AudioChunk.FromFloatPcm(audioBytes, null, KokoroBackend.SampleRate, KokoroBackend.Channels);
+        AudioChunk audioChunk = AudioChunk.FromFloatPcm(audioBytes, null, inferenceBackend!.SampleRate, inferenceBackend.ChannelCount);
         
         await writer.WriteEventAsync(audioChunk.ToEvent());
     }
@@ -130,14 +130,15 @@ public sealed class SynthesizeEventHandler : AsyncEventHandler
         return ReleaseBackendAsync();
     }
 
-    private void EnsureBackend(string? voice)
+    private async Task EnsureBackendAsync(string? voice)
     {
         Asserts.IsNull(inferenceBackend, "Expected inference backend to be null at this point");
         
         if (inferenceBackend is null)
         {
-            voice = string.IsNullOrEmpty(voice) ? "af_alloy" : voice;
-            inferenceBackend = new KokoroBackend(voice);
+            voice = string.IsNullOrEmpty(voice) ? UserSettings.DefaultVoice : voice;
+            inferenceBackend = backendFactory();
+            await inferenceBackend.InitializeAsync(UserSettings.Model, voice!);
         }
     }
     

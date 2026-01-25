@@ -75,6 +75,8 @@ public sealed class AsyncTcpServer : TaskLoopRunner
     {
         listener = new TcpListener(endpoint);
         listener.Start();
+        
+        logger.LogInformation("Server started");
         return ValueTask.CompletedTask;
     }
 
