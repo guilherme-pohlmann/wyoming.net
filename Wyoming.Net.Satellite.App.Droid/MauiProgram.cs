@@ -1,4 +1,6 @@
-﻿namespace Wyoming.Net.Satellite.App.Droid
+﻿using Wyoming.Net.Satellite.App.Maui;
+
+namespace Wyoming.Net.Satellite.App.Droid
 {
     public static class MauiProgram
     {

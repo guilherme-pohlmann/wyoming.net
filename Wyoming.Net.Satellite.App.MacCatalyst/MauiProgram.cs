@@ -1,5 +1,4 @@
-using Microsoft.Maui.Hosting;
-using Wyoming.Net.Satellite.App;
+using Wyoming.Net.Satellite.App.Maui;
 
 namespace Wyoming.Net.Satellite.App.MacCatalyst;
 

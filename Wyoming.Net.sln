@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wyoming.Net.Satellite.App", "Wyoming.Net.Satellite.App\Wyoming.Net.Satellite.App.csproj", "{CDCA1F2D-9D52-440B-9E43-616904B222F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wyoming.Net.Satellite.App.Maui", "Wyoming.Net.Satellite.App.Maui\Wyoming.Net.Satellite.App.Maui.csproj", "{CDCA1F2D-9D52-440B-9E43-616904B222F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wyoming.Net.Satellite.App.Droid", "Wyoming.Net.Satellite.App.Droid\Wyoming.Net.Satellite.App.Droid.csproj", "{44F09F4B-9419-4B2B-8A43-3B898221794C}"
 EndProject

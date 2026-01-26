@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Wyoming.Net.Satellite.App.Maui.SatelliteSettingsPage"
+             xmlns:viewmodels="clr-namespace:Wyoming.Net.Satellite.App.Maui.ViewModels"
+             x:DataType="viewmodels:SatelliteSettingsViewModel"
+             Title="Satellite Settings">
+    <VerticalStackLayout HorizontalOptions="Fill" Padding="20">
+        <Label 
+            Text="Name" 
+            FontSize="16" 
+            Margin="10,0,0,0"/>
+        
+        <Entry 
+            Keyboard="Plain" 
+            Text="{Binding Name}" 
+            Margin="10" 
+            Placeholder="Enter satellite name"
+            />
+        
+        <Label 
+            Text="Area" 
+            FontSize="16" 
+            Margin="10,0,0,0"/>
+        
+        <Entry 
+            Keyboard="Text" 
+            Text="{Binding Area}" 
+            Margin="10" 
+            Placeholder="Enter satellite area"
+            />
+        
+        <Label
+            Text="Description" 
+            FontSize="16" 
+            Margin="10,0,0,0"/>
+        
+        <Editor 
+            Keyboard="Text" 
+            Text="{Binding Description}" 
+            Margin="10" 
+            HeightRequest="50" 
+            AutoSize="TextChanges" 
+            Placeholder="Enter satellite description (optional)"
+            />
+
+        <Label 
+            Text="Port" 
+            FontSize="16" 
+            Margin="10,0,0,0"/>
+        
+        <Entry 
+            Keyboard="Numeric" 
+            Text="{Binding Port}" 
+            Margin="10" />
+        
+    </VerticalStackLayout>
+</ContentPage>

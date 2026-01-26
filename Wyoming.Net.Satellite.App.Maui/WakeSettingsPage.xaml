@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Wyoming.Net.Satellite.App.Maui.WakeSettingsPage"
+             xmlns:viewmodels="clr-namespace:Wyoming.Net.Satellite.App.Maui.ViewModels"
+             x:DataType="viewmodels:WakeSettingsViewModel"
+             Title="Wake Settings">
+    <VerticalStackLayout HorizontalOptions="Fill" Padding="20">
+        <HorizontalStackLayout>
+            <Label Text="Enabled" VerticalOptions="Center" FontSize="20" Margin="0,0,10,0"/>
+            <Switch IsToggled="{Binding Enabled}" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout IsEnabled="{Binding Enabled}">
+            <Label Text="Model" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Picker x:Name="ModelPicker" Title="Select Wake Model" SelectedItem="{Binding Model}" >
+                <Picker.Items>
+                    <x:String>alexa</x:String>
+                </Picker.Items>
+            </Picker>
+
+            <Label Text="Rate" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Entry Keyboard="Numeric" Text="{Binding Rate}"></Entry>
+
+            <Label Text="Width" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Entry Keyboard="Numeric" Text="{Binding Width}"></Entry>
+
+            <Label Text="Channels" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Entry Keyboard="Numeric" Text="{Binding Channels}"></Entry>
+
+            <Label Text="Refractory Seconds" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Entry Keyboard="Numeric" Text="{Binding RefractorySeconds}"></Entry>
+
+            <Label Text="Max Patience" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Entry Keyboard="Numeric" Text="{Binding MaxPatience}"></Entry>
+
+            <Label Text="Prediction Threshold" VerticalOptions="Center" FontSize="20" Margin="0,10,0,10"/>
+            <Entry Keyboard="Numeric" Text="{Binding PredictionThreshold}"></Entry>
+        </VerticalStackLayout>
+
+    </VerticalStackLayout>
+</ContentPage>

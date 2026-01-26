@@ -22,7 +22,7 @@
       <CodesignKey>Apple Development: guilherme.pr@outlook.com (Y7GC955294)</CodesignKey>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Wyoming.Net.Satellite.App\Wyoming.Net.Satellite.App.csproj" />
+      <ProjectReference Include="..\Wyoming.Net.Satellite.App.Maui\Wyoming.Net.Satellite.App.Maui.csproj" />
     </ItemGroup>
     <ItemGroup>
         <MauiAsset Include="Resources/Raw/**" />

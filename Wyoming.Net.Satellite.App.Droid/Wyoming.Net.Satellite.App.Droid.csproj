@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Wyoming.Net.Satellite.App\Wyoming.Net.Satellite.App.csproj" />
+	  <ProjectReference Include="..\Wyoming.Net.Satellite.App.Maui\Wyoming.Net.Satellite.App.Maui.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

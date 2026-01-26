@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Wyoming.Net.Satellite.App.Maui.ViewModels"
+             xmlns:net="clr-namespace:Wyoming.Net.Satellite.App.Maui"
+             xmlns:app="clr-namespace:Wyoming.Net.Satellite.App.Maui"
+             x:DataType="viewmodels:SatelliteStateViewModel"
+             x:Class="Wyoming.Net.Satellite.App.Maui.MainPage" >
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+            <!-- MAIN CONTENT -->
+            <ScrollView Grid.Row="1" HorizontalOptions="Center">
+                <VerticalStackLayout
+                    Padding="30,10"
+                    Spacing="30"
+                    HorizontalOptions="Center"
+                    >
+                    
+                    <Label Text="Wyoming .NET"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"/>
+
+                    <Grid>
+                           <app:ListeningAnimation
+                               x:Name="ListeningAnimation" />
+                    </Grid>
+               
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- BOTTOM ACTIONS -->
+            <VerticalStackLayout VerticalOptions="End"
+                                 Padding="20"
+                                 Spacing="12"
+                                 Grid.Row="2"
+                                 >
+
+                <Button Text="Start Satellite"
+                        BackgroundColor="#4F46E5"
+                        TextColor="White"
+                        CornerRadius="15"
+                        Clicked="OnStartStopClicked"
+                        x:Name="StartStopButton"/>
+            </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>
