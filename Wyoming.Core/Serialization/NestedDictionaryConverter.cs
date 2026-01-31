@@ -14,7 +14,7 @@ public sealed class NestedDictionaryConverter : JsonConverter<object>
         if (reader.TryGetDouble(out var d))
             return d;
         using var doc = JsonDocument.ParseValue(ref reader);
-        throw new JsonException(string.Format("Cannot parse number {0}", doc.RootElement.ToString()));
+        throw new JsonException($"Cannot parse number {doc.RootElement.ToString()}");
     }
 
     public override object? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

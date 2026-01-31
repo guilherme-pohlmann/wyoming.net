@@ -103,12 +103,20 @@ internal sealed class WyomingEventReader
     {
         if (data == null)
         {
+#if NET9_0_OR_GREATER
             return additionalData?.AsReadOnly() ?? ReadOnlyDictionary<string, object>.Empty;
+#else
+            return additionalData?.AsReadOnly() ?? Wyoming.Net.Core.Net6._0.Extensions.EmptyData;
+#endif
         }
 
         if (additionalData == null)
         {
+#if NET9_0_OR_GREATER
             return data?.AsReadOnly() ?? ReadOnlyDictionary<string, object>.Empty;
+#else
+            return data?.AsReadOnly() ?? Wyoming.Net.Core.Net6._0.Extensions.EmptyData;
+#endif
         }
 
         foreach (var kv in additionalData)

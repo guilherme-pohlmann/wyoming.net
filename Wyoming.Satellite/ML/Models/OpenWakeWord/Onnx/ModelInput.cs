@@ -9,9 +9,15 @@ internal readonly struct ModelInput : IReadOnlyDictionary<string, OrtValue>
     private readonly string key;
     private readonly OrtValue value;
 
-    struct ModelInputEnumerator(KeyValuePair<string, OrtValue> pair) : IEnumerator<KeyValuePair<string, OrtValue>>
+    struct ModelInputEnumerator : IEnumerator<KeyValuePair<string, OrtValue>>
     {
         private int index = 0;
+        private readonly KeyValuePair<string, OrtValue> pair;
+
+        public ModelInputEnumerator(KeyValuePair<string, OrtValue> pair)
+        {
+            this.pair = pair;
+        }
 
         public readonly KeyValuePair<string, OrtValue> Current => pair;
 

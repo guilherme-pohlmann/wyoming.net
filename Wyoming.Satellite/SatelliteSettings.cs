@@ -53,7 +53,7 @@ public sealed record SndSettings
 
 public sealed record WakeWordAndPipeline
 {
-    public required string Name { get; init; }
+    public string Name { get; init; } = string.Empty;
 
     public string? Pipeline { get; init; }
 }

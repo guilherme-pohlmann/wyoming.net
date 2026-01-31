@@ -3,9 +3,13 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
 
-public sealed class MelspectrogramModel(byte[] model) : BaseModel(model)
+public sealed class MelspectrogramModel : BaseModel
 {
-    private static readonly long[] Shape = [1, 1760];//1280];
+    public MelspectrogramModel(byte[] model) : base(model)
+    {
+    }
+
+    private static readonly long[] Shape = {1, 1760};//1280];
 
     internal ModelOutput GenerateSpectogram(in ReadOnlySpan<float> input)
     {

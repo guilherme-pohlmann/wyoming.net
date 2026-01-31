@@ -27,18 +27,12 @@ public sealed class WyomingStreamWriter
         int dataSize = Encoding.UTF8.GetByteCount(data);
         string header = $"{{\"{ProtocolConstants.Type}\":\"{@event.Type}\",\"{ProtocolConstants.DataLength}\":{dataSize},\"{ProtocolConstants.PayloadLength}\":{@event.Payload?.Length ?? 0}}}";
         
-        Span<byte> headerBuffer = stackalloc byte[Encoding.UTF8.GetByteCount(header)];
-        Encoding.UTF8.GetBytes(header, headerBuffer);
-
-        stream.Write(headerBuffer);
+        WriteString(header);
         stream.WriteByte((byte)'\n');
 
         if (!string.IsNullOrEmpty(data))
         {
-            Span<byte> dataBuffer = stackalloc byte[dataSize];
-            Encoding.UTF8.GetBytes(data, dataBuffer);
-
-            stream.Write(dataBuffer);
+            WriteString(data, dataSize);
         }
 
         if(@event.Payload != null)
@@ -47,5 +41,12 @@ public sealed class WyomingStreamWriter
         }
 
         await stream.FlushAsync();
+    }
+
+    private void WriteString(string data, int? size = null)
+    {
+        Span<byte> buffer = stackalloc byte[size ?? Encoding.UTF8.GetByteCount(data)];
+        Encoding.UTF8.GetBytes(data, buffer);
+        stream.Write(buffer);
     }
 }

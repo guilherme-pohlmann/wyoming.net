@@ -6,14 +6,20 @@ using Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
 
 namespace Wyoming.Net.Satellite;
 
-public readonly struct OpenWakeWordModels(
-    EmbeddingModel embeddingModel,
-    MelspectrogramModel melspectrogramModel,
-    WakeWordModel wakeWordModel)
+public readonly struct OpenWakeWordModels
 {
-    public readonly EmbeddingModel EmbeddingModel = embeddingModel;
-    public readonly MelspectrogramModel MelspectrogramModel = melspectrogramModel;
-    public readonly WakeWordModel WakeWordModel = wakeWordModel;
+    public readonly EmbeddingModel EmbeddingModel;
+    public readonly MelspectrogramModel MelspectrogramModel;
+    public readonly WakeWordModel WakeWordModel;
+
+    public OpenWakeWordModels(EmbeddingModel embeddingModel,
+        MelspectrogramModel melspectrogramModel,
+        WakeWordModel wakeWordModel)
+    {
+        EmbeddingModel = embeddingModel;
+        MelspectrogramModel = melspectrogramModel;
+        WakeWordModel = wakeWordModel;
+    }
 }
 
 public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
@@ -143,9 +149,14 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
     }
 }
 
-sealed class SlidingWindowPcmBuffer(int maxSize)
+sealed class SlidingWindowPcmBuffer
 {
-    private readonly float[] buffer = new float[maxSize];
+    private readonly float[] buffer;
+
+    public SlidingWindowPcmBuffer(int maxSize)
+    {
+        buffer = new float[maxSize];
+    }
 
     public void Append(ReadOnlySpan<float> newData, int windowSize)
     {

@@ -90,7 +90,10 @@ public sealed class AsyncTcpServer : TaskLoopRunner
         }
 
         handlers.Clear();
-        listener.Dispose();
+
+#if NET9_0_OR_GREATER
+        listener.Dispose();  
+#endif
     }
 
     protected override async Task LoopAsync()

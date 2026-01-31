@@ -13,14 +13,19 @@ public sealed class Describe : IEventable
     public Event ToEvent() => new(Type);
 }
 
-public sealed class Info(Satellite? satellite) : IEventable
+public sealed class Info : IEventable
 {
+    public Info(Satellite? satellite)
+    {
+        Satellite = satellite;
+    }
+
     public const string Type = "info";
 
     /// <summary>
     /// Satellite information
     /// </summary>
-    public Satellite? Satellite { get; init; } = satellite;
+    public Satellite? Satellite { get; init; }
     
     public IEnumerable<TtsProgram> Tts { get; init; } = Array.Empty<TtsProgram>();
 
@@ -240,7 +245,7 @@ public sealed class Satellite : Artifact
 
 public sealed class TtsVoiceSpeaker
 {
-    public required string Name { get; init; }
+    public string Name { get; init; } = null!;
     
     public IReadOnlyDictionary<string, object> ToDict()
     {

@@ -34,7 +34,11 @@ public sealed class RunPipeline : IEventable
 
     public RunPipeline(string startStage, string endStage)
     {
+        #if NET9_0_OR_GREATER
         static bool IsAny(string target, params ReadOnlySpan<string> args)
+        #else
+        static bool IsAny(string target, params string[] args)
+        #endif
         {
             foreach (var arg in args)
             {

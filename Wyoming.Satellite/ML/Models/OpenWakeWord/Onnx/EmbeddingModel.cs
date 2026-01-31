@@ -3,9 +3,13 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
 
-public sealed class EmbeddingModel(byte[] model) : BaseModel(model)
+public sealed class EmbeddingModel : BaseModel
 {
-    private static readonly long[] Shape = [1, 76, 32, 1];
+    public EmbeddingModel(byte[] model) : base(model)
+    {
+    }
+
+    private static readonly long[] Shape = {1, 76, 32, 1};
     public const int FlatShapeSize = 1 * 76 * 32 * 1;
 
     internal ModelOutput GenerateAudioEmbeddings(in ReadOnlySpan<float> input)

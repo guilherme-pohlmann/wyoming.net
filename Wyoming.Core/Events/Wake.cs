@@ -1,5 +1,6 @@
 ﻿namespace Wyoming.Net.Core.Events;
 
+
 public sealed class Detection : IEventable
 {
     private const string DetectionType = "detection";
@@ -22,25 +23,25 @@ public sealed class Detection : IEventable
 
         if (!string.IsNullOrEmpty(Name))
         {
-            data ??= [];
+            data ??= new Dictionary<string, object>();
             data["name"] = Name;
         }
 
         if (Timestamp is not null)
         {
-            data ??= [];
+            data ??= new Dictionary<string, object>();
             data["timestamp"] = Timestamp;
         }
 
         if (!string.IsNullOrEmpty(Speaker))
         {
-            data ??= [];
+            data ??= new Dictionary<string, object>();
             data["speaker"] = Speaker;
         }
 
         if (Context != null)
         {
-            data ??= [];
+            data ??= new Dictionary<string, object>();
             data["context"] = Context;
         }
 
