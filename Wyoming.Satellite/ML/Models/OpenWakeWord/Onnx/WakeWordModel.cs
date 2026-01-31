@@ -3,16 +3,17 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
 
-public sealed class WakeWordModel : BaseModel
+public sealed class WakeWordModel : BaseModel, IWakeWordModel
 {
     public WakeWordModel(byte[] model) : base(model)
     {
     }
 
     private static readonly long[] Shape = { 1, 16, 96 };
-    public const int FlatShapeSize = 1 * 16 * 96;
+    
+    public int FlatShapeSize => 1 * 16 * 96;
 
-    internal float Predict(ReadOnlySpan<float> input)
+    public float Predict(ReadOnlySpan<float> input)
     {
         using var ortTensor = OrtValue.CreateAllocatedTensorValue(OrtAllocator.DefaultInstance, TensorElementType.Float, Shape);
         

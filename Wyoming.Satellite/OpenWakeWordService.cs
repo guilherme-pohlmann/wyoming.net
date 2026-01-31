@@ -2,19 +2,19 @@
 using System.Buffers;
 using System.Threading.Channels;
 using Wyoming.Net.Core;
-using Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
+using Wyoming.Net.Satellite.ML.Models.OpenWakeWord;
 
 namespace Wyoming.Net.Satellite;
 
 public readonly struct OpenWakeWordModels
 {
-    public readonly EmbeddingModel EmbeddingModel;
-    public readonly MelspectrogramModel MelspectrogramModel;
-    public readonly WakeWordModel WakeWordModel;
+    public readonly IEmbeddingModel EmbeddingModel;
+    public readonly IMelspectrogramModel MelspectrogramModel;
+    public readonly IWakeWordModel WakeWordModel;
 
-    public OpenWakeWordModels(EmbeddingModel embeddingModel,
-        MelspectrogramModel melspectrogramModel,
-        WakeWordModel wakeWordModel)
+    public OpenWakeWordModels(IEmbeddingModel embeddingModel,
+        IMelspectrogramModel melspectrogramModel,
+        IWakeWordModel wakeWordModel)
     {
         EmbeddingModel = embeddingModel;
         MelspectrogramModel = melspectrogramModel;
@@ -28,19 +28,19 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
     private const int SampleWindowSize = 480;
 
     // Input for Embedding Model
-    private const int MelSpectogramBufferSize = EmbeddingModel.FlatShapeSize;
+    private readonly int melSpectogramBufferSize;
 
     // Input por WakeWordModel
-    private const int EmbeddingBufferSize = WakeWordModel.FlatShapeSize;
-
-    private readonly EmbeddingModel embeddingModel;
-    private readonly MelspectrogramModel melspectrogramModel;
-    private readonly WakeWordModel wakeWordModel;
-    private readonly SlidingWindowPcmBuffer melBufferRing = new(MelSpectogramBufferSize);
-    private readonly SlidingWindowPcmBuffer embeddingBuferRing = new(EmbeddingBufferSize);
+    private readonly int embeddingBufferSize;
+    
+    private readonly IEmbeddingModel embeddingModel;
+    private readonly IMelspectrogramModel melspectrogramModel;
+    private readonly IWakeWordModel wakeWordModel;
+    private readonly SlidingWindowPcmBuffer melBuffer;
+    private readonly SlidingWindowPcmBuffer embeddingBuffer;
     private readonly SlidingWindowPcmBuffer rawAudioBuffer = new(ExpectedSampleSize + SampleWindowSize);
-    private readonly int maxPatience = 15;
-    private readonly float predictionThreshold = 0.5f;
+    private readonly int maxPatience;
+    private readonly float predictionThreshold;
     private readonly IWakeWordPredictionHandler predictionHandler;
 
     private readonly Channel<AudioTask<float>> channel;
@@ -49,18 +49,23 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
         OpenWakeWordModels models,
         IWakeWordPredictionHandler predictionHandler,
         ILogger<OpenWakeWordService> logger,
-        int maxPatience,
-        float predictionThreshold) 
+        int maxPatience = 15,
+        float predictionThreshold = 0.5f) 
         : base(logger, TaskLoopRunnerOptions.RestartOnFail)
     {
-        this.embeddingModel = models.EmbeddingModel;
-        this.melspectrogramModel = models.MelspectrogramModel;
-        this.wakeWordModel = models.WakeWordModel;
+        embeddingModel = models.EmbeddingModel;
+        melspectrogramModel = models.MelspectrogramModel;
+        wakeWordModel = models.WakeWordModel;
+        embeddingBufferSize = models.WakeWordModel.FlatShapeSize;
+        embeddingBuffer = new SlidingWindowPcmBuffer(embeddingBufferSize);
+        melSpectogramBufferSize = models.EmbeddingModel.FlatShapeSize;
+        melBuffer = new SlidingWindowPcmBuffer(melSpectogramBufferSize);
+        
         this.predictionThreshold = predictionThreshold;
         this.maxPatience = maxPatience;
         this.predictionHandler = predictionHandler;
 
-        this.channel = Channel.CreateUnbounded<AudioTask<float>>(new UnboundedChannelOptions
+        channel = Channel.CreateUnbounded<AudioTask<float>>(new UnboundedChannelOptions
         {
             SingleReader = true,
             SingleWriter = true,
@@ -113,21 +118,21 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
     {
         // samples -> MelspectrogramModel -> EmbeddingModel -> WakeWordModel
 
-        var melOutput = melspectrogramModel.GenerateSpectogram(samples);
+        var melOutput = melspectrogramModel.GenerateSpectrogram(samples);
 
         Span<float> melOutputBuffer = stackalloc float[melOutput.FlattenedLength];
         melOutput.FlattenTo(melOutputBuffer);
 
-        melBufferRing.Append(melOutputBuffer, MelSpectogramBufferSize - melOutput.FlattenedLength);
+        melBuffer.Append(melOutputBuffer, melSpectogramBufferSize - melOutput.FlattenedLength);
 
-        var embeddingOutput = embeddingModel.GenerateAudioEmbeddings(melBufferRing.Span);
+        var embeddingOutput = embeddingModel.GenerateAudioEmbeddings(melBuffer.Span);
 
         Span<float> embeddingOutputBuffer  = stackalloc float[embeddingOutput.FlattenedLength];
         embeddingOutput.FlattenTo(embeddingOutputBuffer);
 
-        embeddingBuferRing.Append(embeddingOutputBuffer, EmbeddingBufferSize - embeddingOutput.FlattenedLength);
+        embeddingBuffer.Append(embeddingOutputBuffer, embeddingBufferSize - embeddingOutput.FlattenedLength);
 
-        float prediction = wakeWordModel.Predict(embeddingBuferRing.Span);
+        float prediction = wakeWordModel.Predict(embeddingBuffer.Span);
 
         return prediction;
     }

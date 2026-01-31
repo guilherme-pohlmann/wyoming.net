@@ -3,16 +3,17 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
 
-public sealed class EmbeddingModel : BaseModel
+public sealed class EmbeddingModel : BaseModel, IEmbeddingModel
 {
     public EmbeddingModel(byte[] model) : base(model)
     {
     }
 
-    private static readonly long[] Shape = {1, 76, 32, 1};
-    public const int FlatShapeSize = 1 * 76 * 32 * 1;
+    private static readonly long[] Shape = { 1, 76, 32, 1 };
+    
+    public int FlatShapeSize => 1 * 76 * 32 * 1;
 
-    internal ModelOutput GenerateAudioEmbeddings(in ReadOnlySpan<float> input)
+    public ModelOutput GenerateAudioEmbeddings(in ReadOnlySpan<float> input)
     {
         using var ortTensor = OrtValue.CreateAllocatedTensorValue(OrtAllocator.DefaultInstance, TensorElementType.Float, Shape);
 
@@ -23,6 +24,10 @@ public sealed class EmbeddingModel : BaseModel
 
         var result = session.Run(DefaultRunOptions, modelInput, session.OutputNames);
 
+#if NET9_0_OR_GREATER
         return new ModelOutput(result);
+#else
+        return new ModelOutput();
+#endif
     }
 }
