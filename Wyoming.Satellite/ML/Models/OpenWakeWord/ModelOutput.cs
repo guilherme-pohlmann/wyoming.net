@@ -1,6 +1,4 @@
-﻿
-
-namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
+﻿namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord;
 
 #if NET9_0_OR_GREATER
 
