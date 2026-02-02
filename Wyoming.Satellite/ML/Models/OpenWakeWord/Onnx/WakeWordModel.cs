@@ -1,4 +1,6 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿#if NET9_0_OR_GREATER
+
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
@@ -9,7 +11,7 @@ public sealed class WakeWordModel : BaseModel, IWakeWordModel
     {
     }
 
-    private static readonly long[] Shape = { 1, 16, 96 };
+    private static readonly long[] Shape = [ 1, 16, 96 ];
     
     public int FlatShapeSize => 1 * 16 * 96;
 
@@ -30,3 +32,5 @@ public sealed class WakeWordModel : BaseModel, IWakeWordModel
         return tensorData[0];
     }
 }
+
+#endif

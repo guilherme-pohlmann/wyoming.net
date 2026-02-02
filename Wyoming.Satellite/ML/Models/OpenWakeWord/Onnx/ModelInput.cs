@@ -1,4 +1,6 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿#if NET9_0_OR_GREATER
+
+using Microsoft.ML.OnnxRuntime;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
@@ -78,3 +80,5 @@ internal readonly struct ModelInput : IReadOnlyDictionary<string, OrtValue>
         return GetEnumerator();
     }
 }
+
+#endif

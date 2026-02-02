@@ -1,4 +1,6 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿#if NET9_0_OR_GREATER
+
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
@@ -9,9 +11,11 @@ public sealed class MelspectrogramModel : BaseModel, IMelspectrogramModel
     {
     }
 
-    private static readonly long[] Shape = {1, 1760};//1280];
+    private static readonly long[] Shape = [1, 1760];
 
-    public ModelOutput GenerateSpectrogram(in ReadOnlySpan<float> input)
+    public int FlattenedOutputSize => 256;
+
+    public void GenerateSpectrogram(in ReadOnlySpan<float> input, in Span<float> destination)
     {
         // Span<float> scaled = stackalloc float[input.Length];
         // input.CopyTo(scaled);
@@ -26,16 +30,12 @@ public sealed class MelspectrogramModel : BaseModel, IMelspectrogramModel
         var modelInput = new ModelInput("input", ortTensor);
 
         var result = session.Run(DefaultRunOptions, modelInput, session.OutputNames);
-
-#if NET9_0_OR_GREATER
-        return new ModelOutput(result, Normalize);
-#else
-        return new ModelOutput();
-#endif
-        
+        using var modelOutput = new ModelOutput(result, Normalize);
+    
+        modelOutput.FlattenTo(destination);    
     }
 
-    private static void Normalize(Span<float> outputBuffer)
+    private static void Normalize(in Span<float> outputBuffer)
     {
         for (int i = 0; i < outputBuffer.Length; i++)
         {
@@ -53,3 +53,5 @@ public sealed class MelspectrogramModel : BaseModel, IMelspectrogramModel
     //     }
     // }
 }
+
+#endif

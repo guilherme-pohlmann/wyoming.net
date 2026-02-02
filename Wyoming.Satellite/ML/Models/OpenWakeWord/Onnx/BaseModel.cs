@@ -1,4 +1,6 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿#if NET9_0_OR_GREATER
+
+using Microsoft.ML.OnnxRuntime;
 
 namespace Wyoming.Net.Satellite.ML.Models.OpenWakeWord.Onnx;
 
@@ -35,3 +37,5 @@ public abstract class BaseModel : IDisposable
         GC.SuppressFinalize(this);
     }
 }
+
+#endif

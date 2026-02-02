@@ -118,19 +118,15 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
     {
         // samples -> MelspectrogramModel -> EmbeddingModel -> WakeWordModel
 
-        var melOutput = melspectrogramModel.GenerateSpectrogram(samples);
+        Span<float> melOutputBuffer = stackalloc float[melspectrogramModel.FlattenedOutputSize];
+        melspectrogramModel.GenerateSpectrogram(samples, melOutputBuffer);
+        
+        melBuffer.Append(melOutputBuffer, melSpectogramBufferSize - melOutputBuffer.Length);
 
-        Span<float> melOutputBuffer = stackalloc float[melOutput.FlattenedLength];
-        melOutput.FlattenTo(melOutputBuffer);
+        Span<float> embeddingOutputBuffer  = stackalloc float[embeddingModel.FlattenedOutputSize];
+        embeddingModel.GenerateAudioEmbeddings(melBuffer.Span, embeddingOutputBuffer);
 
-        melBuffer.Append(melOutputBuffer, melSpectogramBufferSize - melOutput.FlattenedLength);
-
-        var embeddingOutput = embeddingModel.GenerateAudioEmbeddings(melBuffer.Span);
-
-        Span<float> embeddingOutputBuffer  = stackalloc float[embeddingOutput.FlattenedLength];
-        embeddingOutput.FlattenTo(embeddingOutputBuffer);
-
-        embeddingBuffer.Append(embeddingOutputBuffer, embeddingBufferSize - embeddingOutput.FlattenedLength);
+        embeddingBuffer.Append(embeddingOutputBuffer, embeddingBufferSize - embeddingOutputBuffer.Length);
 
         float prediction = wakeWordModel.Predict(embeddingBuffer.Span);
 
