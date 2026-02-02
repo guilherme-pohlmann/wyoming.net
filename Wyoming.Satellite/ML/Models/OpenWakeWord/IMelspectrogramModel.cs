@@ -4,5 +4,5 @@ public interface IMelspectrogramModel : IDisposable
 {
     int FlattenedOutputSize { get; }
     
-    void GenerateSpectrogram(in ReadOnlySpan<float> input, in Span<float> destination);
+    void GenerateSpectrogram(ReadOnlySpan<float> input, Span<float> destination);
 }

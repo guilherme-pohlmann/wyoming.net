@@ -17,7 +17,7 @@ public sealed class EmbeddingModel : BaseModel, IEmbeddingModel
 
     public int FlattenedOutputSize => 96;
 
-    public void GenerateAudioEmbeddings(in ReadOnlySpan<float> input, in Span<float> destination)
+    public void GenerateAudioEmbeddings(ReadOnlySpan<float> input, Span<float> destination)
     {
         using var ortTensor = OrtValue.CreateAllocatedTensorValue(OrtAllocator.DefaultInstance, TensorElementType.Float, Shape);
 

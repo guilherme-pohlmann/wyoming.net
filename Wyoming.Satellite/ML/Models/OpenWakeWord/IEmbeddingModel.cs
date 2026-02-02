@@ -6,5 +6,5 @@ public interface IEmbeddingModel : IDisposable
     
     int FlattenedOutputSize { get; }
     
-    void GenerateAudioEmbeddings(in ReadOnlySpan<float> input, in Span<float> destination);
+    void GenerateAudioEmbeddings(ReadOnlySpan<float> input, Span<float> destination);
 }

@@ -15,7 +15,7 @@ public sealed class MelspectrogramModel : BaseModel, IMelspectrogramModel
 
     public int FlattenedOutputSize => 256;
 
-    public void GenerateSpectrogram(in ReadOnlySpan<float> input, in Span<float> destination)
+    public void GenerateSpectrogram(ReadOnlySpan<float> input, Span<float> destination)
     {
         // Span<float> scaled = stackalloc float[input.Length];
         // input.CopyTo(scaled);
