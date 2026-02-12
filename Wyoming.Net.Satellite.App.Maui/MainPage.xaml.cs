@@ -1,8 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Wyoming.Net.Core;
-using Wyoming.Net.Core.Audio;
-using Wyoming.Net.Core.Events;
-using Wyoming.Net.Core.Server;
 using Wyoming.Net.Satellite.App.Maui.Abstractions;
 using Wyoming.Net.Satellite.App.Maui.ViewModels;
 
@@ -178,6 +174,9 @@ public partial class MainPage : ContentPage
             {
                 StartStopButton.Text = "Start Satellite";
                 StartStopButton.Background = new SolidColorBrush(Color.FromArgb("#4F46E5"));
+                ListeningAnimation.IsConnecting = false;
+                ListeningAnimation.IsConnected = false;
+                ListeningAnimation.IsListening = false; 
             });
         }
     }

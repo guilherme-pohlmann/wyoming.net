@@ -41,14 +41,14 @@
 	  <ProjectReference Include="..\Wyoming.Satellite\Wyoming.Net.Satellite.csproj" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+	<!-- <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 	  <PackageReference Include="Xamarin.TensorFlow.Lite">
 	    <Version>2.16.1.7</Version>
 	  </PackageReference>
 	  <PackageReference Include="Xamarin.TensorFlow.Lite.Gpu">
 	    <Version>2.16.1.7</Version>
 	  </PackageReference>
-	</ItemGroup>
+	</ItemGroup> -->
 
 	<ItemGroup>
 	  <MauiXaml Update="SatelliteSettingsPage.xaml">

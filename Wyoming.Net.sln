@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wyoming.Net.Tts", "Wyoming.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wyoming.Net.Tts.KokoroBackend", "Wyoming.Net.Tts.KokoroBackend\Wyoming.Net.Tts.KokoroBackend.csproj", "{E48DEFAC-A02A-4DD7-AEDB-9CC9551AA2B9}"
 EndProject
+Project("{6DEBFD27-93A2-46AE-AEE8-9ECDB3F64A13}") = "Wyoming.Net.Satellite.App.Tizen", "Wyoming.Net.Satellite.App.Tizen\Tizen\Wyoming.Net.Satellite.App.Tizen.csproj", "{601E3BBC-4D21-45B0-8BB2-9D023BD47271}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,6 +94,14 @@ Global
 		{E48DEFAC-A02A-4DD7-AEDB-9CC9551AA2B9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E48DEFAC-A02A-4DD7-AEDB-9CC9551AA2B9}.Release|ARM64.ActiveCfg = Release|Any CPU
 		{E48DEFAC-A02A-4DD7-AEDB-9CC9551AA2B9}.Release|ARM64.Build.0 = Release|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Release|Any CPU.Build.0 = Release|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{601E3BBC-4D21-45B0-8BB2-9D023BD47271}.Release|ARM64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
