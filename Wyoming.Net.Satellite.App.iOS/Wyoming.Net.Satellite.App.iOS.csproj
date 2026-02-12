@@ -30,11 +30,11 @@
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 	  <MtouchLink>SdkOnly</MtouchLink>
-	  <CodesignKey>Apple Development: guilherme.pr@outlook.com (Y7GC955294)</CodesignKey>
+	  <CodesignKey>iPhone Developer</CodesignKey>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-	  <CodesignKey>Apple Development: guilherme.pr@outlook.com (Y7GC955294)</CodesignKey>
+	  <CodesignKey>iPhone Developer</CodesignKey>
 	</PropertyGroup>
 
 </Project>
