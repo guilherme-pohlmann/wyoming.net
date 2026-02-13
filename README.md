@@ -5,6 +5,13 @@ This project allows you to turn almost any device into a Wyoming satellite.
 
 ---
 
+<img src="docs/assets/img.png" width="200">
+<img src="docs/assets/img_1.png" width="200">
+<img src="docs/assets/img_2.png" width="200">
+<img src="docs/assets/img_3.png" width="300">
+
+[Tizen TV](docs/assets/tv.mp4)
+
 ## Supported Platforms
 
 - Android
@@ -249,11 +256,3 @@ MIT license
     - [ ] Publish to Apple Store
     - [ ] Publish to Play Store
     - [ ] Publish to Tizen
-
-<img src="docs/assets/img.png" width="200">
-<img src="docs/assets/img_1.png" width="200">
-<img src="docs/assets/img_2.png" width="200">
-<img src="docs/assets/img_3.png" width="300">
-
-
-[Tizen TV](docs/assets/tv.mp4)
