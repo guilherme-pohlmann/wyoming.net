@@ -57,6 +57,12 @@ Currently supported wake words:
 
 ## Environment Setup
 
+### Requirements
+- .NET 9 SDK or greater
+
+> Note: Tizen support is currently for Tizen 8 and greater. Tizen 8 only runs .NET 6. But you can develop and build with .NET 9 SDK
+> Just make sure the code is compatible with .NET 6.
+
 ### Android / iOS / Windows / Linux / macOS
 
 I recommend following this setup guide:
@@ -76,11 +82,11 @@ Tizen development is currently recommended on:
 
 #### Recommended Setup
 
-1. Install **Tizen Studio**
-2. Install the **.NET Tizen workload**
-3. Install the **VS Code Tizen extension**
-4. Enable **Developer Mode** on your TV
-5. Deploy using SDB or network connection
+1. Install **.NET 9 or greater**
+2. Install VSCode
+3. Install the **.NET Tizen workload**
+4. Install the **VS Code Tizen extension**
+5. Enable **Developer Mode** on your TV
 
 ---
 
