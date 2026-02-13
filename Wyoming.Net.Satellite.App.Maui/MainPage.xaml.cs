@@ -1,4 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
+using Wyoming.Net.Core;
+using Wyoming.Net.Core.Audio;
+using Wyoming.Net.Core.Events;
+using Wyoming.Net.Core.Server;
 using Wyoming.Net.Satellite.App.Maui.Abstractions;
 using Wyoming.Net.Satellite.App.Maui.ViewModels;
 
@@ -154,6 +158,7 @@ public partial class MainPage : ContentPage
         ListeningAnimation.IsConnecting = true;
         
         await server!.StartAsync();
+        stateViewModel.IsRunning = true;
         
         RunUIUpdate(() =>
         {
@@ -169,6 +174,7 @@ public partial class MainPage : ContentPage
             await server.StopAsync();
             satellite = null;
             server = null;
+            stateViewModel.IsRunning = false;
             
             RunUIUpdate(() =>
             {
