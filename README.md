@@ -250,8 +250,10 @@ MIT license
     - [ ] Publish to Play Store
     - [ ] Publish to Tizen
 
-![img.png](docs/assets/img.png)
-![img_1.png](docs/assets/img_1.png)
-![img_2.png](docs/assets/img_2.png)
-![img_3.png](docs/assets/img_3.png)
-![tv.mp4](docs/assets/tv.mp4)
+<img src="docs/assets/img.png" width="200">
+<img src="docs/assets/img_1.png" width="200">
+<img src="docs/assets/img_2.png" width="200">
+<img src="docs/assets/img_3.png" width="300">
+
+
+[Tizen TV](docs/assets/tv.mp4)
