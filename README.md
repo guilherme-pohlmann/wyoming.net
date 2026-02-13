@@ -1,7 +1,6 @@
 # Wyoming .NET
 
 A cross-platform voice assistant satellite built on the [Wyoming protocol](https://github.com/rhasspy/wyoming), designed to integrate with Home Assistant.
-
 This project allows you to turn almost any device into a Wyoming satellite.
 
 ---
@@ -78,6 +77,181 @@ Tizen development is currently recommended on:
 
 ---
 
+## Architecture
+
+Wyoming.NET is structured in layers to keep the core protocol, satellite engine, and platform-specific implementations cleanly separated.
+
+### Project Structure
+
+- **Wyoming.Net.Core**  
+  Base implementation of the Wyoming protocol.  
+  Contains shared protocol logic and primitives used across all projects.
+
+- **Wyoming.Net.Satellite**  
+  The main satellite engine.  
+  Handles:
+    - Audio streaming
+    - Wake word flow
+    - TTS/STT communication
+    - Connection lifecycle
+    - Core assistant logic
+
+  Most of the runtime engine lives here.
+
+- **Wyoming.Net.Satellite.App.Maui**  
+  Shared .NET MAUI application layer (UI + shared app logic).
+
+- **Wyoming.Net.Satellite.App.Droid**
+- **Wyoming.Net.Satellite.App.iOS**
+- **Wyoming.Net.Satellite.App.MacCatalyst**
+
+  Platform-specific MAUI entry points.  
+  These host the shared MAUI app and provide native bindings when needed.
+
+- **Wyoming.Net.Satellite.App.Tizen**  
+  Tizen implementation.  
+  Uses `Core` and `Satellite`, but has its own UI layer instead of MAUI.
+
+- **Wyoming.Net.Tts**  
+  Built-in TTS server implementation.
+
+- **Wyoming.Net.Tts.KokoroBackend**  
+  Kokoro backend for the TTS server.
+
+---
+
+## Layered Design
+
+The system follows a layered architecture:
+
+Core (Protocol)<br>
+↓<br>
+Satellite (Engine)<br>
+↓<br>
+Platform Edge Layer (Devices)
+
+
+### Core
+
+Responsible only for the Wyoming protocol implementation and shared abstractions.
+
+### Satellite (Engine Layer)
+
+The Satellite project contains most of the assistant runtime logic:
+
+- Wake word pipeline
+- Audio buffering
+- Streaming to Home Assistant
+- TTS playback handling
+- Session state
+- Dependency injection entry points
+
+This layer is platform-agnostic.
+
+### Platform Edge Layer
+
+Each platform implements hardware-specific functionality such as:
+
+- Microphone access
+- Speaker output
+- Audio session configuration
+- Device lifecycle
+- Background execution
+- Inference runtime (when required)
+
+These implementations are injected into the Satellite engine using **Dependency Injection**, keeping the engine clean and portable.
+
+---
+
+## Inference Runtime
+
+Wake word inference runs using:
+
+- **ONNX Runtime** on:
+    - Android
+    - iOS
+    - Windows
+    - Linux
+    - macOS
+
+- **Tizen SingleShot Engine** on:
+    - Tizen
+
+Tizen uses its native inference engine instead of ONNX due to platform constraints.
+
+---
+
+## Design Principles
+
+- Clear separation of concerns
+- Platform-agnostic core engine
+- Thin device-specific edge layers
+- Dependency injection for portability
+- Modular backend support (TTS/STT)
+
+This makes it easy to:
+- Add new platforms
+- Swap inference backends
+- Embed additional services (TTS/STT)
+- Extend the assistant without breaking platform code
+
+
 ## License
 
 MIT license
+
+## Roadmap
+
+### Core Features
+- [ ] Silent mode
+- [ ] Upload custom WAV files for wake word detection
+- [x] Improve UI
+- [x] Support different TTS models
+- [ ] Support different wake word models
+- [ ] Background mode
+- [ ] Auto discovery (zeroconf)
+- [ ] Noise suppression
+    - [ ] Energy gate + WebRTC pre-validations
+
+---
+
+### Platform Support
+- [x] Tizen
+- [x] Windows
+- [ ] Linux
+- [x] macOS
+
+---
+
+### Performance & Code Quality
+- [ ] Review all `ConfigureAwait(false)` usage
+- [ ] Review memory allocation
+- [ ] Review CPU usage and battery consumption
+
+---
+
+### Built-in Servers
+
+#### TTS Server in Wyoming.NET
+- [x] Kokoro backend
+- [ ] OpenAI backend
+- [ ] pt-BR support
+- [ ] Improve phoneme algorithm
+- [ ] Markdown cleaning
+
+#### STT Server in Wyoming.NET
+- [ ] Built-in STT server implementation
+
+---
+
+### Distribution
+- [ ] Publishing / distribution pipeline
+    - [ ] Publish to Apple Store
+    - [ ] Publish to Play Store
+    - [ ] Publish to Tizen
+
+![img.png](docs/assets/img.png)
+![img_1.png](docs/assets/img_1.png)
+![img_2.png](docs/assets/img_2.png)
+![img_3.png](docs/assets/img_3.png)
+![tv.mp4](docs/assets/tv.mp4)
