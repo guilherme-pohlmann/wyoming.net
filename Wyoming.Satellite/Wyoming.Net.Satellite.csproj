@@ -21,6 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.23.2" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'tizen'" />
 		<PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'tizen'" />
@@ -76,6 +77,14 @@
 	
 	<ItemGroup>
 	  <Folder Include="ML\Models\OpenWakeWord\Tizen\" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+	  <PackageReference Include="Xamarin.TensorFlow.Android" Version="1.13.1.16" />
+	  <PackageReference Include="Xamarin.TensorFlow.Lite" Version="2.16.1.8" />
+	  <PackageReference Include="Xamarin.TensorFlow.Lite.Gpu" Version="2.16.1.8" />
+	  <PackageReference Include="Xamarin.TensorFlow.Lite.Gpu.Api" Version="2.16.1.8" />
+	  <PackageReference Include="Xamarin.TensorFlow.Lite.Support.Api" Version="0.5.0.4" />
 	</ItemGroup>
 
 </Project>

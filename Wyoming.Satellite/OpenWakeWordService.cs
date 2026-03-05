@@ -6,6 +6,8 @@ using Wyoming.Net.Core;
 using Wyoming.Net.Core.Audio;
 using Wyoming.Net.Core.WebRtc;
 using Wyoming.Net.Satellite.ML.Models.OpenWakeWord;
+using Wyoming.Net.Satellite.ML.Models.SileroVad;
+using Wyoming.Net.Satellite.ML.Models.SileroVad.Onnx;
 
 namespace Wyoming.Net.Satellite;
 
@@ -44,6 +46,8 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
     private readonly SlidingWindowPcmBuffer rawAudioBuffer = new(ExpectedSampleSize + SampleWindowSize);
     private readonly IWakeWordPredictionHandler predictionHandler;
     private readonly WebRtcVad? webRtcVad;
+    private readonly SileroVad sileroVad = new SileroVad(0.5f, 16000, 250, 100);
+    private readonly SileroVadModel sileroVadModel;
 
     private readonly Channel<AudioTask<float>> channel;
     
@@ -55,6 +59,10 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
         ILogger<OpenWakeWordService> logger)
         : base(logger, TaskLoopRunnerOptions.RestartOnFail)
     {
+        #if ANDROID
+        sileroVadModel = new SileroVadModel(DroidAssetReader.ReadAsset(Android.App.Application.Context.Assets!,"silero_vad.onnx"));  
+        #endif
+        
         embeddingModel = models.EmbeddingModel;
         melspectrogramModel = models.MelspectrogramModel;
         wakeWordModel = models.WakeWordModel;
@@ -106,18 +114,40 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
             {
                 continue;
             }
-
+            
             using var chunk = await channel.Reader.ReadAsync(CancellationTokenSource!.Token);
+            // var w = Stopwatch.StartNew();
+            // SileroVadEvent(chunk.Buffer);
+            //
+            // w.Stop();
+            // logger.LogInformation($"Silero processed in {w.ElapsedMilliseconds} ms");
+            //
+            // if (ev.Contains(SileroVad.VadEvent.SpeechStart))
+            // {
+            //     if (ev.Contains(SileroVad.VadEvent.SpeechEnd))
+            //     {
+            //         logger.LogInformation("start and end");    
+            //     }
+            //     else
+            //     {
+            //         logger.LogInformation("start");
+            //     }
+            // }
+            // else if(ev.Contains(SileroVad.VadEvent.SpeechEnd))
+            // {
+            //     logger.LogInformation("end only");
+            // }
+            
             float prediction = Predict(chunk.Buffer.Span);
-
+            
             logger.LogDebug("Prediction: {prediction}", prediction);
-
+            
             if (patience > 0)
             {
                 patience--;
                 continue;
             }
-
+            
             if (patience == 0 && prediction >= predictionThreshold && !CancellationTokenSource.IsCancellationRequested)
             {
                 patience = SatelliteSettings.Wake.MaxPatience;
@@ -125,22 +155,30 @@ public sealed class OpenWakeWordService : TaskLoopRunner, IAsyncDisposable
             }
         }
     }
+
+    private List<SileroVad.VadEvent> SileroVadEvent(Memory<float> samples)
+    {
+        Span<float> predictions =  stackalloc float[SileroVadModel.GetNumberOfPredictions(samples.Length)];
+        sileroVadModel.BatchPredict(samples, predictions);
+        
+        return sileroVad.HasDetectedSpeech(predictions);
+    }
     
     private float Predict(ReadOnlySpan<float> samples)
     {
-        if ((SatelliteSettings.Vad.UseEnergyGate && IsSilence(samples)) || (webRtcVad is not null && !VadIsSpeech(samples)))
-        {
-            silenceFrames = Math.Max(silenceFrames, 0);
-        
-            if(++silenceFrames == 5)
-            {
-                melBuffer.Clear();
-                embeddingBuffer.Clear();
-            }
-            return 0f;
-        }
-
-        silenceFrames = 0;
+        // if ((SatelliteSettings.Vad.UseEnergyGate && IsSilence(samples)) || (webRtcVad is not null && !VadIsSpeech(samples)))
+        // {
+        //     silenceFrames = Math.Max(silenceFrames, 0);
+        //
+        //     if(++silenceFrames == 5)
+        //     {
+        //         melBuffer.Clear();
+        //         embeddingBuffer.Clear();
+        //     }
+        //     return 0f;
+        // }
+        //
+        // silenceFrames = 0;
         
         // samples -> MelspectrogramModel -> EmbeddingModel -> WakeWordModel
 
