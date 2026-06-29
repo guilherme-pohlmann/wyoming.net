@@ -2,10 +2,11 @@ using Tizen.NUI;
 using Tizen.NUI.BaseComponents;
 using Tizen.NUI.Components;
 using Wyoming.Net.Satellite.App.Tz.ViewModels;
+using Wyoming.Net.Satellite.App.Tz.Components;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class VadSettingsPage : ContentPage
+public class VadSettingsPage : ContentPage, ISelectableView
 {
     public VadSettingsPage(VadSettingsViewModel vm, View parent)
     {
@@ -67,4 +68,8 @@ public class VadSettingsPage : ContentPage
         Focusable = true;
 		FocusGained += (s,args) => FocusManager.Instance.SetCurrentFocusView(enabledInput);
     }
+
+    public bool Selected { get; set; }
+
+    public View View => this;
 }

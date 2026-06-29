@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
 using Tizen.Applications;
@@ -10,7 +11,7 @@ using Wyoming.Net.Satellite.App.Tz.ViewModels;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class MainPage : View
+public class MainPage : View, ISelectableView
 {
     private ListeningAnimationComponent listeningAnimationComponent;
 
@@ -19,8 +20,12 @@ public class MainPage : View
     private SatelliteButton startStopButton;
 
     private readonly View parent;
-    
+
     private readonly SynchronizationContext uiContext;
+
+    private bool selected;
+
+    private System.Threading.Timer statusTimer;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public MainPage(View parent)
@@ -28,6 +33,7 @@ public class MainPage : View
     {
         this.parent = parent;
         uiContext = TizenSynchronizationContext.Current!;
+       
 
         InitializeUI();
         ServiceManager.Singleton.MessageReceived += (s, e) =>
@@ -35,20 +41,40 @@ public class MainPage : View
             string eventName = e.Message.GetItem<string>(Constants.Events.EventKey);
             RunUIUpdate(() => HandleServiceEvent(eventName, e.Message));
         };
+    }
 
-        parent.ChildAdded += async (s, args) =>
+    public bool Selected
+    {
+        get
         {
-            if (args.Added == this)
-            {
-                if (!ServiceManager.Singleton.IsCommunicating)
-                {
-                    await ServiceManager.Singleton.StartAsync();
-                }
+            return selected;
+        }
+        set
+        {
+            selected = value;
 
-                await Task.Delay(TimeSpan.FromSeconds(1));
-                ServiceManager.Singleton.SendGetStatus();
+            if (selected)
+            {
+                StartTimer();
             }
-        };
+            else
+            {
+                StopTimer();
+            }
+        }
+    }
+
+    public View View => this;
+
+    private void StartTimer()
+    {
+        statusTimer = new System.Threading.Timer(_ => ServiceManager.Singleton.SendGetStatus(), null, 1000, Timeout.Infinite);
+    }
+
+    private void StopTimer()
+    {
+        statusTimer?.Dispose();
+        statusTimer = null;
     }
 
     private void InitializeUI()

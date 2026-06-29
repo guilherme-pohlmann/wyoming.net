@@ -10,7 +10,7 @@ using Wyoming.Net.Satellite.App.Tz.Platform;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class DebugAudioPage : ContentPage
+public class DebugAudioPage : ContentPage, ISelectableView
 {
     private readonly View _parent;
     private readonly ScrollableBase _scrollable;
@@ -71,6 +71,10 @@ public class DebugAudioPage : ContentPage
                 Cleanup();
         };
     }
+
+    public bool Selected { get; set; }
+
+    public View View => this;
 
     private void RefreshFileList()
     {

@@ -2,10 +2,11 @@ using Tizen.NUI.Components;
 using Tizen.NUI;
 using Tizen.NUI.BaseComponents;
 using Wyoming.Net.Satellite.App.Tz.ViewModels;
+using Wyoming.Net.Satellite.App.Tz.Components;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class SatelliteSettingsPage : ContentPage
+public class SatelliteSettingsPage : ContentPage, ISelectableView
 {
 	public SatelliteSettingsPage(SatelliteSettingsViewModel vm, View parent)
 	{
@@ -60,4 +61,8 @@ public class SatelliteSettingsPage : ContentPage
 		Focusable = true;
 		FocusGained += (s,args) => FocusManager.Instance.SetCurrentFocusView(nameInput);
 	}
+
+	public bool Selected { get; set; }
+
+    public View View => this;
 }

@@ -1,5 +1,5 @@
 # csproj file path
-csproj_file: Tizen.csproj
+csproj_file: Wyoming.Net.Satellite.App.Tizen.csproj
 
 # Default profile, Tizen API version
 profile: tv-samsung
@@ -15,13 +15,7 @@ signing_profile: ""
 
 # files monitored for dirty/modified status
 files:
-  - Tizen.csproj
-  - Tizen.cs
-  - tizen-manifest.xml
-  - shared/res/Tizen.png
-  - res/alexa_v0.1.tflite
-  - res/embedding_model.tflite
-  - res/melspectrogram.tflite
+  - Wyoming.Net.Satellite.App.Tizen.csproj
 
 # project dependencies
 deps: []

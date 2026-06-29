@@ -10,7 +10,7 @@ using Wyoming.Net.Satellite.App.Tz.ViewModels;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class ControlPanelPage : ContentPage
+public class ControlPanelPage : ContentPage, ISelectableView
 {
     private readonly ControlPanelViewModel _vm;
     private readonly TextLabel _statusLabel;
@@ -118,6 +118,10 @@ public class ControlPanelPage : ContentPage
             }
         };
     }
+
+     public bool Selected { get; set; }
+
+     public View View => this;
 
     private void UpdateServiceStatus()
     {

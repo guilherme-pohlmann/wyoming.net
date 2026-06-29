@@ -2,10 +2,11 @@ using Tizen.NUI;
 using Tizen.NUI.BaseComponents;
 using Tizen.NUI.Components;
 using Wyoming.Net.Satellite.App.Tz.ViewModels;
+using Wyoming.Net.Satellite.App.Tz.Components;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class WakeSettingsPage : ContentPage
+public class WakeSettingsPage : ContentPage, ISelectableView
 {
     public WakeSettingsPage(WakeSettingsViewModel vm, View parent)
     {
@@ -68,4 +69,8 @@ public class WakeSettingsPage : ContentPage
         Focusable = true;
 		FocusGained += (s,args) => FocusManager.Instance.SetCurrentFocusView(modelInput);
     }
+
+    public bool Selected { get; set; }
+
+    public View View => this;
 }

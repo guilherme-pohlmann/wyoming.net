@@ -9,15 +9,24 @@ using Wyoming.Net.Satellite.App.Tz.ViewModels;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class StateConfigurationPage : ContentPage
+public class StateConfigurationPage : ContentPage, ISelectableView
 {
+    private readonly View _clipContainer;
+    private readonly View _content;
+
     public StateConfigurationPage(SatelliteSettingsViewModel vm, View parent, IEnumerable<ApplicationInfo> installedApps)
     {
-        var scrollable = new ScrollableBase
+        _clipContainer = new View
         {
             WidthResizePolicy = ResizePolicyType.FillToParent,
             HeightResizePolicy = ResizePolicyType.FillToParent,
-            ScrollingDirection = ScrollableBase.Direction.Vertical,
+            ClippingMode = ClippingModeType.ClipChildren,
+        };
+
+        _content = new View
+        {
+            WidthSpecification = LayoutParamPolicies.MatchParent,
+            HeightSpecification = LayoutParamPolicies.WrapContent,
             Padding = new Extents(200, 200, 20, 20),
             Layout = new LinearLayout
             {
@@ -26,6 +35,7 @@ public class StateConfigurationPage : ContentPage
                 HorizontalAlignment = HorizontalAlignment.Center,
             }
         };
+        _clipContainer.Add(_content);
 
         var description = new TextLabel("Mark apps as Inactive to automatically stop the satellite when they are in the foreground.")
         {
@@ -34,16 +44,18 @@ public class StateConfigurationPage : ContentPage
             Margin = new Extents(0, 0, 0, 30),
             Focusable = false,
             MultiLine = true,
-            WidthResizePolicy = ResizePolicyType.FillToParent,
+            WidthSpecification = LayoutParamPolicies.MatchParent,
+            HeightSpecification = LayoutParamPolicies.WrapContent,
         };
-        scrollable.Add(description);
+        _content.Add(description);
 
         var intervalLabel = TizenUI.CreateLabel("Watcher Interval (seconds)");
         var intervalInput = TizenUI.CreateInput(vm.StateConfiguration, (it) => it.WatcherIntervalSeconds, (it, value) => it.WatcherIntervalSeconds = value.ToIntOrDefault());
         intervalInput.UpFocusableView = parent;
+        intervalInput.FocusGained += (s, e) => EnsureVisible(intervalInput);
 
-        scrollable.Add(intervalLabel);
-        scrollable.Add(intervalInput);
+        _content.Add(intervalLabel);
+        _content.Add(intervalInput);
 
         var apps = installedApps.Where(a => !a.IsNoDisplay
                         && a.ApplicationId != Constants.UiAppId
@@ -53,16 +65,18 @@ public class StateConfigurationPage : ContentPage
             .OrderBy(a => a.Label ?? a.ApplicationId)
             .ToList();
 
-        Button? firstButton = null;
-        Button? previousButton = null;
+        View? previousRow = null;
 
         foreach (var appInfo in apps)
         {
             var row = new View
             {
-                WidthResizePolicy = ResizePolicyType.FillToParent,
+                WidthSpecification = LayoutParamPolicies.MatchParent,
                 HeightSpecification = 80,
                 Margin = new Extents(0, 0, 0, 10),
+                Focusable = true,
+                BorderlineWidth = 2,
+                BorderlineColor = TvStyle.ButtonBorderlineColor,
                 Layout = new LinearLayout
                 {
                     LinearOrientation = LinearLayout.Orientation.Horizontal,
@@ -84,65 +98,74 @@ public class StateConfigurationPage : ContentPage
             string capturedAppId = appInfo.ApplicationId;
             bool isUnactive = vm.StateConfiguration.UnactiveApps.Contains(capturedAppId);
 
-            var toggleBtn = new Button
+            var stateLabel = new TextLabel(isUnactive ? "Inactive" : "Active")
             {
-                Text = isUnactive ? "Inactive" : "Active",
-                Focusable = true,
+                PointSize = 22,
+                Focusable = false,
                 WidthSpecification = 250,
                 HeightSpecification = 70,
-                BorderlineWidth = 2,
-                BorderlineColor = TvStyle.ButtonBorderlineColor,
                 BackgroundColor = isUnactive ? new Color("#DC2626") : new Color("#1F2937"),
                 TextColor = Color.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
             };
 
-            toggleBtn.Clicked += (s, e) =>
+            void ToggleState()
             {
                 if (vm.StateConfiguration.UnactiveApps.Contains(capturedAppId))
                 {
                     vm.StateConfiguration.UnactiveApps.Remove(capturedAppId);
-                    toggleBtn.Text = "Active";
-                    toggleBtn.BackgroundColor = new Color("#1F2937");
+                    stateLabel.Text = "Active";
+                    stateLabel.BackgroundColor = new Color("#1F2937");
                 }
                 else
                 {
                     vm.StateConfiguration.UnactiveApps.Add(capturedAppId);
-                    toggleBtn.Text = "Inactive";
-                    toggleBtn.BackgroundColor = new Color("#DC2626");
+                    stateLabel.Text = "Inactive";
+                    stateLabel.BackgroundColor = new Color("#DC2626");
                 }
+            }
+
+            row.KeyEvent += (s, e) =>
+            {
+                if (e.Key.State == Key.StateType.Down
+                    && (e.Key.KeyPressedName == "Return" || e.Key.KeyPressedName == "Select"))
+                {
+                    ToggleState();
+                    return true;
+                }
+                return false;
             };
 
-            toggleBtn.FocusGained += (s, e) =>
+            row.FocusGained += (s, e) =>
             {
-                toggleBtn.BorderlineColor = TvStyle.ButtonFocusedBorderlineColor;
-                toggleBtn.Scale = new Vector3(1.05f, 1.05f, 1);
+                row.BorderlineColor = TvStyle.ButtonFocusedBorderlineColor;
+                EnsureVisible(row);
             };
 
-            toggleBtn.FocusLost += (s, e) =>
+            row.FocusLost += (s, e) =>
             {
-                toggleBtn.BorderlineColor = TvStyle.ButtonBorderlineColor;
-                toggleBtn.Scale = Vector3.One;
+                row.BorderlineColor = TvStyle.ButtonBorderlineColor;
             };
 
-            if (previousButton != null)
+            if (previousRow != null)
             {
-                toggleBtn.UpFocusableView = previousButton;
-                previousButton.DownFocusableView = toggleBtn;
+                row.UpFocusableView = previousRow;
+                previousRow.DownFocusableView = row;
             }
             else
             {
-                toggleBtn.UpFocusableView = intervalInput;
-                intervalInput.DownFocusableView = toggleBtn;
-                firstButton = toggleBtn;
+                row.UpFocusableView = intervalInput;
+                intervalInput.DownFocusableView = row;
             }
 
             row.Add(label);
-            row.Add(toggleBtn);
-            scrollable.Add(row);
-            previousButton = toggleBtn;
+            row.Add(stateLabel);
+            _content.Add(row);
+            previousRow = row;
         }
 
-        Content = scrollable;
+        Content = _clipContainer;
         Focusable = true;
 
         FocusGained += (s, args) =>
@@ -150,4 +173,32 @@ public class StateConfigurationPage : ContentPage
             FocusManager.Instance.SetCurrentFocusView(intervalInput);
         };
     }
+
+    private void EnsureVisible(View target)
+    {
+        float clipHeight = _clipContainer.SizeHeight;
+        if (clipHeight <= 0) return;
+
+        float targetY = target.PositionY;
+        float targetHeight = target.SizeHeight;
+        float contentOffset = _content.PositionY;
+
+        float visibleTop = -contentOffset;
+        float visibleBottom = visibleTop + clipHeight;
+
+        float margin = 20f;
+
+        if (targetY + targetHeight + margin > visibleBottom)
+        {
+            _content.PositionY = -(targetY + targetHeight + margin - clipHeight);
+        }
+        else if (targetY - margin < visibleTop)
+        {
+            _content.PositionY = -(targetY - margin);
+        }
+    }
+
+    public bool Selected { get; set; }
+
+    public View View => this;
 }

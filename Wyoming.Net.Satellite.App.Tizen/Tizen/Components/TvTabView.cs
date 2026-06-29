@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using Tizen.NUI;
 using Tizen.NUI.BaseComponents;
@@ -7,11 +8,18 @@ using Tizen.NUI.Components;
 
 namespace Wyoming.Net.Satellite.App.Tz.Components;
 
+public interface ISelectableView
+{
+    public bool Selected { get; set; }
+
+    public View View { get; }
+}
+
 internal sealed class TvTabView : View
 {
     internal class TabItem : Button
     {
-        public TabItem(View child, int index)
+        public TabItem(ISelectableView child, int index)
         {
             Child = child;
             Index = index;
@@ -19,11 +27,21 @@ internal sealed class TvTabView : View
 
         public event EventHandler Leave;
 
-        public View Child { get; private set; }
+        public ISelectableView Child { get; private set; }
 
         public int Index { get; private set; }
 
-        public bool Selected { get; set; }
+        public bool Selected
+        {
+            get
+            {
+                return Child.Selected;
+            }
+            set
+            {
+                Child.Selected = value;
+            }
+        }
 
         public void OnLeave()
         {
@@ -149,7 +167,7 @@ internal sealed class TvTabView : View
             {
                 t.OnLeave();
                 t.Selected = false;
-                body.Remove(t.Child);
+                body.Remove(t.Child.View);
             }
         }
 
@@ -159,8 +177,8 @@ internal sealed class TvTabView : View
         tab.RightFocusableView = body;
         body.LeftFocusableView = tab;
 
-        body.Add(tab.Child);
-        SetLeftFocusToHeader(tab.Child, tab);
+        body.Add(tab.Child.View);
+        SetLeftFocusToHeader(tab.Child.View, tab);
     }
 
     private void SetLeftFocusToHeader(View view, TabItem tab)
@@ -202,7 +220,7 @@ internal sealed class TvTabView : View
         tab.BackgroundColor = Color.Transparent;
     }
 
-    public TabItem AddTab(string name, View child)
+    public TabItem AddTab(string name, ISelectableView child)
     {
         var tab = new TabItem(child, tabs.Count)
         {

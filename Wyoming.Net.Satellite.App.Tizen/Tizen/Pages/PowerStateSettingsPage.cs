@@ -3,10 +3,11 @@ using Tizen.NUI.BaseComponents;
 using Tizen.NUI.Components;
 using Tizen.TV.System.Sensor;
 using Wyoming.Net.Satellite.App.Tz.ViewModels;
+using Wyoming.Net.Satellite.App.Tz.Components;
 
 namespace Wyoming.Net.Satellite.App.Tz.Pages;
 
-public class PowerStateSettingsPage : ContentPage
+public class PowerStateSettingsPage : ContentPage, ISelectableView
 {
     public PowerStateSettingsPage(PowerStateSettingsViewModel vm, View parent)
     {
@@ -78,4 +79,8 @@ public class PowerStateSettingsPage : ContentPage
         Focusable = true;
         FocusGained += (s, args) => FocusManager.Instance.SetCurrentFocusView(enabledInput);
     }
+
+    public bool Selected { get; set; }
+
+    public View View => this;
 }
