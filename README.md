@@ -114,6 +114,7 @@ The application settings are managed within the app but map to the following int
 - **Mic Settings**: Control volume multiplier, auto-gain, noise suppression, and sample rate.
 - **Sound (Snd) Settings**: Configure TTS output, awake/done WAV sounds, and volume.
 - **Wake Word**: Enable/disable local wake word detection, set sensitivity (threshold), and refractory periods.
+- **VAD Settings**: Enable/disable WebRTC voice activity detection, set the mode, and configure the energy gate threshold.
 
 Currently supported Wake Words:
 - **Alexa**
