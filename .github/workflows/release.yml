@@ -1,0 +1,246 @@
+name: Release Android APK
+
+# Builds the Android APK from the MAUI app and publishes it as a GitHub release.
+#
+# Triggers:
+#   - Push a tag like v1.2.3 (or v1.2.3-beta.1 for a pre-release):
+#         git tag v1.2.3 && git push origin v1.2.3
+#   - Run manually from the Actions tab and enter a version (the tag is created for you).
+#
+# Optional signing secrets (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 of your .keystore file   (base64 -w0 release.keystore)
+#   ANDROID_KEYSTORE_PASSWORD  keystore password
+#   ANDROID_KEY_ALIAS          key alias
+#   ANDROID_KEY_PASSWORD       key password
+# Without them the APK is signed with the default debug key: fine for sideloading,
+# but not for Google Play, and updates only work between APKs signed with the same key.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 1.2.3 (creates tag v1.2.3 on the selected branch)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark the release as a pre-release'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: 9.0.x
+  JAVA_VERSION: '17'
+  TARGET_FRAMEWORK: net9.0-android
+  # Folder of the MAUI app that produces the Android APK. Change this if the app head lives elsewhere.
+  PROJECT_DIR: Wyoming.Net.Satellite.App.Maui
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PRERELEASE: ${{ inputs.prerelease }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            RAW="$INPUT_VERSION"
+          else
+            RAW="$REF_NAME"
+          fi
+          VERSION="${RAW#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$RAW' is not a valid version. Use something like v1.2.3 or v1.2.3-beta.1"
+            exit 1
+          fi
+          PRERELEASE=false
+          if [[ "$VERSION" == *-* || "$INPUT_PRERELEASE" == "true" ]]; then
+            PRERELEASE=true
+          fi
+          {
+            echo "version=$VERSION"
+            echo "tag=v$VERSION"
+            echo "prerelease=$PRERELEASE"
+            echo "display_version=${VERSION%%-*}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Locate Android project
+        id: project
+        run: |
+          set -euo pipefail
+          PROJECT_FILE=$(find "$PROJECT_DIR" -maxdepth 1 -name '*.csproj' | head -n 1 || true)
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "::error::No .csproj found in '$PROJECT_DIR'. Update PROJECT_DIR at the top of this workflow."
+            exit 1
+          fi
+          if ! grep -q "$TARGET_FRAMEWORK" "$PROJECT_FILE"; then
+            echo "::error::$PROJECT_FILE does not mention $TARGET_FRAMEWORK. Point PROJECT_DIR at the project that builds the Android app."
+            exit 1
+          fi
+          echo "Using $PROJECT_FILE"
+          echo "file=$PROJECT_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare signing keystore
+        id: signing
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "path=$RUNNER_TEMP/release.keystore" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set. The APK will be signed with the debug key (fine for sideloading, not for Google Play)."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish APK
+        env:
+          PROJECT_FILE: ${{ steps.project.outputs.file }}
+          DISPLAY_VERSION: ${{ steps.version.outputs.display_version }}
+          SIGNING_ENABLED: ${{ steps.signing.outputs.enabled }}
+          KEYSTORE_PATH: ${{ steps.signing.outputs.path }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ARGS=(
+            "$PROJECT_FILE"
+            -f "$TARGET_FRAMEWORK"
+            -c Release
+            -o "$GITHUB_WORKSPACE/artifacts/publish"
+            -p:AndroidPackageFormat=apk
+            -p:ApplicationDisplayVersion="$DISPLAY_VERSION"
+            -p:ApplicationVersion="$GITHUB_RUN_NUMBER"
+            -p:InstallAndroidDependencies=true
+            -p:AcceptAndroidSDKLicenses=true
+          )
+          if [ "$SIGNING_ENABLED" = "true" ]; then
+            ARGS+=(
+              -p:AndroidKeyStore=true
+              -p:AndroidSigningKeyStore="$KEYSTORE_PATH"
+              -p:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
+              -p:AndroidSigningStorePass=env:ANDROID_KEYSTORE_PASSWORD
+              -p:AndroidSigningKeyPass=env:ANDROID_KEY_PASSWORD
+            )
+          fi
+          dotnet publish "${ARGS[@]}"
+
+      - name: Collect APK
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          APK=$(find artifacts/publish -name '*-Signed.apk' | head -n 1 || true)
+          if [ -z "$APK" ]; then
+            APK=$(find artifacts/publish -name '*.apk' | head -n 1 || true)
+          fi
+          if [ -z "$APK" ]; then
+            echo "::error::No APK was produced. Output was:"
+            ls -R artifacts/publish || true
+            exit 1
+          fi
+          cp "$APK" "dist/Wyoming.Net-${VERSION}-android.apk"
+          (cd dist && sha256sum ./*.apk > SHA256SUMS.txt)
+          ls -lh dist
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: dist/
+          if-no-files-found: error
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.keystore"
+
+  release:
+    name: Create GitHub release
+    needs: build-apk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: dist
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          TAG: ${{ needs.build-apk.outputs.tag }}
+          PRERELEASE: ${{ needs.build-apk.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, replacing its assets."
+            gh release upload "$TAG" dist/* --repo "$REPO" --clobber
+          else
+            FLAGS=()
+            if [ "$PRERELEASE" = "true" ]; then
+              FLAGS+=(--prerelease)
+            fi
+            gh release create "$TAG" dist/* \
+              --repo "$REPO" \
+              --target "$SHA" \
+              --title "Wyoming.NET $TAG" \
+              --notes "Android APK attached below. SHA-256 checksums are in SHA256SUMS.txt." \
+              --generate-notes \
+              "${FLAGS[@]}"
+          fi
