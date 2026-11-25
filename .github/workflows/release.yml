@@ -95,6 +95,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      # The runner image also ships newer SDKs (11.x at the time of writing), and `dotnet` picks the
+      # newest one by default. That SDK rejects net9.0-android as out of support, and workloads are
+      # installed per SDK band. Pin the 9.x SDK before installing workloads or building anything.
+      - name: Pin .NET SDK to 9.x
+        run: |
+          set -euo pipefail
+          echo '{ "sdk": { "version": "9.0.100", "rollForward": "latestFeature" } }' > global.json
+          dotnet --version
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -157,6 +166,9 @@ jobs:
           ARGS=(
             "$PROJECT_FILE"
             -f "$TARGET_FRAMEWORK"
+            # Restore every project for Android only. The projects also list ios/maccatalyst targets,
+            # which need workloads that cannot be installed on a Linux runner.
+            -p:TargetFrameworks="$TARGET_FRAMEWORK"
             -c Release
             -o "$GITHUB_WORKSPACE/artifacts/publish"
             -p:AndroidPackageFormat=apk
