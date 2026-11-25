@@ -41,9 +41,9 @@ permissions:
 env:
   DOTNET_VERSION: 9.0.x
   JAVA_VERSION: '17'
-  TARGET_FRAMEWORK: net9.0-android
-  # Folder of the MAUI app that produces the Android APK. Change this if the app head lives elsewhere.
-  PROJECT_DIR: Wyoming.Net.Satellite.App.Maui
+  # Folder of the Android app project. Leave empty to auto-detect it (the .csproj that targets Android
+  # and has OutputType Exe). Set it, e.g. to Wyoming.Net.Satellite.App.Droid, to force a specific project.
+  PROJECT_DIR: ''
   DOTNET_NOLOGO: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
 
@@ -125,17 +125,44 @@ jobs:
         id: project
         run: |
           set -euo pipefail
-          PROJECT_FILE=$(find "$PROJECT_DIR" -maxdepth 1 -name '*.csproj' | head -n 1 || true)
-          if [ -z "$PROJECT_FILE" ]; then
-            echo "::error::No .csproj found in '$PROJECT_DIR'. Update PROJECT_DIR at the top of this workflow."
+          # Only an app project (OutputType Exe) that targets Android produces an APK. A class library
+          # that targets Android builds fine but outputs no APK.
+          mapfile -t CANDIDATES < <(
+            grep -rlE --include='*.csproj' 'net[0-9]+\.[0-9]+-android' . \
+              | xargs -r grep -l '<OutputType>Exe</OutputType>' \
+              | sed 's|^\./||' | sort || true
+          )
+          echo "Android app project candidates: ${CANDIDATES[*]:-none}"
+
+          if [ -n "$PROJECT_DIR" ]; then
+            PROJECT_FILE=$(find "$PROJECT_DIR" -maxdepth 1 -name '*.csproj' | head -n 1 || true)
+            if [ -z "$PROJECT_FILE" ]; then
+              echo "::error::No .csproj found in PROJECT_DIR '$PROJECT_DIR'."
+              exit 1
+            fi
+          elif [ "${#CANDIDATES[@]}" -ge 1 ]; then
+            PROJECT_FILE="${CANDIDATES[0]}"
+            if [ "${#CANDIDATES[@]}" -gt 1 ]; then
+              echo "::warning::Several Android app projects found, using $PROJECT_FILE. Set PROJECT_DIR at the top of the workflow to choose another."
+            fi
+          else
+            echo "::error::No Android app project found (a .csproj that targets Android and has <OutputType>Exe</OutputType>). Set PROJECT_DIR at the top of the workflow."
+            echo "Projects that mention Android:"
+            grep -rlE --include='*.csproj' 'android' . || true
             exit 1
           fi
-          if ! grep -q "$TARGET_FRAMEWORK" "$PROJECT_FILE"; then
-            echo "::error::$PROJECT_FILE does not mention $TARGET_FRAMEWORK. Point PROJECT_DIR at the project that builds the Android app."
+
+          TFM=$(grep -oE 'net[0-9]+\.[0-9]+-android[0-9.]*' "$PROJECT_FILE" | head -n 1 || true)
+          if [ -z "$TFM" ]; then
+            echo "::error::$PROJECT_FILE does not target Android (no net*-android target framework found)."
             exit 1
           fi
-          echo "Using $PROJECT_FILE"
-          echo "file=$PROJECT_FILE" >> "$GITHUB_OUTPUT"
+          echo "Using $PROJECT_FILE ($TFM)"
+          {
+            echo "file=$PROJECT_FILE"
+            echo "dir=$(dirname "$PROJECT_FILE")"
+            echo "tfm=$TFM"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Prepare signing keystore
         id: signing
@@ -155,6 +182,7 @@ jobs:
       - name: Publish APK
         env:
           PROJECT_FILE: ${{ steps.project.outputs.file }}
+          TFM: ${{ steps.project.outputs.tfm }}
           DISPLAY_VERSION: ${{ steps.version.outputs.display_version }}
           SIGNING_ENABLED: ${{ steps.signing.outputs.enabled }}
           KEYSTORE_PATH: ${{ steps.signing.outputs.path }}
@@ -165,12 +193,11 @@ jobs:
           set -euo pipefail
           ARGS=(
             "$PROJECT_FILE"
-            -f "$TARGET_FRAMEWORK"
+            -f "$TFM"
             # Restore every project for Android only. The projects also list ios/maccatalyst targets,
             # which need workloads that cannot be installed on a Linux runner.
-            -p:TargetFrameworks="$TARGET_FRAMEWORK"
+            -p:TargetFrameworks="$TFM"
             -c Release
-            -o "$GITHUB_WORKSPACE/artifacts/publish"
             -p:AndroidPackageFormat=apk
             -p:ApplicationDisplayVersion="$DISPLAY_VERSION"
             -p:ApplicationVersion="$GITHUB_RUN_NUMBER"
@@ -191,18 +218,24 @@ jobs:
       - name: Collect APK
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          APP_DIR: ${{ steps.project.outputs.dir }}
         run: |
           set -euo pipefail
           mkdir -p dist
-          APK=$(find artifacts/publish -name '*-Signed.apk' | head -n 1 || true)
+          OUT="$APP_DIR/bin/Release"
+          APK=$(find "$OUT" -name '*-Signed.apk' 2>/dev/null | head -n 1 || true)
           if [ -z "$APK" ]; then
-            APK=$(find artifacts/publish -name '*.apk' | head -n 1 || true)
+            APK=$(find "$OUT" -name '*.apk' 2>/dev/null | head -n 1 || true)
           fi
           if [ -z "$APK" ]; then
-            echo "::error::No APK was produced. Output was:"
-            ls -R artifacts/publish || true
+            echo "::error::No APK was produced in $OUT."
+            echo "APK/AAB files anywhere in the repo:"
+            find . \( -name '*.apk' -o -name '*.aab' \) -not -path './.git/*' || true
+            echo "Contents of $OUT:"
+            find "$OUT" -maxdepth 3 2>/dev/null | head -n 60 || true
             exit 1
           fi
+          echo "Found $APK"
           cp "$APK" "dist/Wyoming.Net-${VERSION}-android.apk"
           (cd dist && sha256sum ./*.apk > SHA256SUMS.txt)
           ls -lh dist
